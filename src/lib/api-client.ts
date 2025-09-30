@@ -1,5 +1,6 @@
 // Simple fetch-based API client
-const API_BASE_URL = 'http://localhost:8000';
+// Next.js config handles proxying to backend
+const API_BASE_URL = '/api';
 
 // Helper function for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
@@ -52,7 +53,7 @@ export const api = {
     console.log('📤 Uploading file:', file.name, 'Size:', file.size);
     console.log('📤 FormData entries:', Array.from(formData.entries()));
     
-    return await apiCall('/api/documents/upload', {
+    return await apiCall('/documents/upload', {
       method: 'POST',
       body: formData,
       // Don't set Content-Type header - let fetch handle it for FormData
@@ -60,31 +61,31 @@ export const api = {
   },
 
   listDocuments: async () => {
-    return await apiCall('/api/documents/list');
+    return await apiCall('/documents/list');
   },
 
   getDocument: async (documentId: string) => {
-    return await apiCall(`/api/documents/${documentId}`);
+    return await apiCall(`/documents/${documentId}`);
   },
 
   deleteDocument: async (documentId: string) => {
-    return await apiCall(`/api/documents/${documentId}`, {
+    return await apiCall(`/documents/${documentId}`, {
       method: 'DELETE',
     });
   },
 
   getDocumentCount: async () => {
-    return await apiCall('/api/documents/');
+    return await apiCall('/documents/');
   },
 
   // Health check
   healthCheck: async () => {
-    return await apiCall('/api/health');
+    return await apiCall('/health');
   },
 
   // Chat endpoints
   sendMessage: async (message: string, documentIds: string[] = []) => {
-    return await apiCall('/api/chat/message', {
+    return await apiCall('/chat/message', {
       method: 'POST',
       body: JSON.stringify({
         message,
@@ -94,7 +95,7 @@ export const api = {
   },
 
   getChatHistory: async (sessionId: string = 'default_session') => {
-    return await apiCall(`/api/chat/history/${sessionId}`);
+    return await apiCall(`/chat/history/${sessionId}`);
   },
 };
 
