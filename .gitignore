@@ -39,3 +39,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# backend/.gitignore
+
+# Ignore typical Python/venv artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+.venv/
+venv/
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
+
+# Data/runtime dirs
+uploads/
+chroma_db/
