@@ -21,7 +21,7 @@ export async function addDocumentsToStore(docId: string, textChunks: string[], m
   try {
     // Create embeddings for each chunk
     const chunkEmbeddings = await embeddings.embedDocuments(textChunks);
-    
+
     // Store documents with embeddings
     for (let i = 0; i < textChunks.length; i++) {
       documents.push({
@@ -32,11 +32,12 @@ export async function addDocumentsToStore(docId: string, textChunks: string[], m
         embedding: chunkEmbeddings[i]
       });
     }
-    
+
     return { success: true };
   } catch (error) {
-    console.error('Failed to add documents to store:', error);
-    return { success: false, error: error.message };
+    const err = error as Error;
+    console.error('Failed to add documents to store:', err);
+    return { success: false, error: err.message };
   }
 }
 
@@ -44,13 +45,13 @@ export async function searchSimilarDocuments(query: string, k: number = 4) {
   try {
     // Create embedding for query
     const queryEmbedding = await embeddings.embedQuery(query);
-    
+
     // Calculate similarity scores (simple cosine similarity)
     const similarities = documents.map(doc => ({
       doc,
-      similarity: this.cosineSimilarity(queryEmbedding, doc.embedding)
+      similarity: cosineSimilarity(queryEmbedding, doc.embedding)
     }));
-    
+
     // Sort by similarity and return top k
     const results = similarities
       .sort((a, b) => b.similarity - a.similarity)
@@ -59,28 +60,29 @@ export async function searchSimilarDocuments(query: string, k: number = 4) {
         pageContent: item.doc.content,
         metadata: item.doc.metadata
       }));
-    
+
     return { success: true, results };
   } catch (error) {
-    console.error('Failed to search documents:', error);
-    return { success: false, error: error.message };
+    const err = error as Error;
+    console.error('Failed to search documents:', err);
+    return { success: false, error: err.message };
   }
 }
 
 // Simple cosine similarity calculation
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
-  
+
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
-  
+
   for (let i = 0; i < a.length; i++) {
     dotProduct += a[i] * b[i];
     normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
-  
+
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
@@ -90,8 +92,9 @@ export async function deleteDocumentFromStore(docId: string) {
     documents = documents.filter(doc => doc.docId !== docId);
     return { success: true };
   } catch (error) {
-    console.error('Failed to delete document from store:', error);
-    return { success: false, error: error.message };
+    const err = error as Error;
+    console.error('Failed to delete document from store:', err);
+    return { success: false, error: err.message };
   }
 }
 

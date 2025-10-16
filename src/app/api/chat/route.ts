@@ -23,9 +23,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare context from search results
-    const context = searchResult.results
-      .map((doc, index) => `Context ${index + 1}:\n${doc.pageContent}`)
+    // Prepare context from search results (safe default)
+    const resultDocs = Array.isArray((searchResult as any).results)
+      ? (searchResult as any).results
+      : [];
+    const context = resultDocs
+      .map((doc: any, index: number) => `Context ${index + 1}:\n${doc.pageContent}`)
       .join('\n\n');
 
     // Generate response using LLM
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       response,
-      sources: searchResult.results.map(doc => ({
+      sources: resultDocs.map((doc: any) => ({
         content: doc.pageContent.substring(0, 200) + '...',
         metadata: doc.metadata
       }))
