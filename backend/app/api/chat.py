@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 
 from app.models.document import ChatRequest, ChatResponse, ChatMessage
-from app.services.fixed_rag_service import rag_service
+from app.services.rag_service import rag_service
 
 router = APIRouter()
 

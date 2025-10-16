@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 from app.models.document import DocumentResponse, DocumentList, DocumentChunk
-from app.services.fixed_rag_service import rag_service
+from app.services.rag_service import rag_service
 from app.core.config import settings
 
 # Configure logging
@@ -108,10 +108,14 @@ async def upload_document(file: UploadFile = File(..., description="PDF file to 
         
         # Save file
         try:
-            os.makedirs(settings.upload_directory, exist_ok=True)
-            file_path = os.path.join(settings.upload_directory, f"{document_id}.pdf")
-            # Ensure absolute path
-            file_path = os.path.abspath(file_path)
+            # Resolve upload directory to an absolute path rooted at backend dir
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            upload_dir = settings.upload_directory
+            if not os.path.isabs(upload_dir):
+                upload_dir = os.path.join(base_dir, upload_dir)
+
+            os.makedirs(upload_dir, exist_ok=True)
+            file_path = os.path.join(upload_dir, f"{document_id}.pdf")
             logger.info(f"Saving file to: {file_path}")
             
             with open(file_path, "wb") as buffer:
