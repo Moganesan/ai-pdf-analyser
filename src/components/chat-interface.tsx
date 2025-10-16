@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   timestamp: Date;
 }
 
@@ -19,7 +19,11 @@ interface ChatInterfaceProps {
   isLoading?: boolean;
 }
 
-export function ChatInterface({ onSendMessage, messages, isLoading = false }: ChatInterfaceProps) {
+export function ChatInterface({
+  onSendMessage,
+  messages,
+  isLoading = false,
+}: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +45,7 @@ export function ChatInterface({ onSendMessage, messages, isLoading = false }: Ch
   };
 
   return (
-    <Card className="h-[600px] flex flex-col">
+    <Card className="flex flex-col">
       <CardContent className="flex-1 flex flex-col p-0">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -50,7 +54,9 @@ export function ChatInterface({ onSendMessage, messages, isLoading = false }: Ch
               <div className="text-center">
                 <Bot className="mx-auto h-12 w-12 mb-4" />
                 <p>Start a conversation about your PDF documents</p>
-                <p className="text-sm">Ask questions, request summaries, or get insights</p>
+                <p className="text-sm">
+                  Ask questions, request summaries, or get insights
+                </p>
               </div>
             </div>
           ) : (
@@ -58,10 +64,10 @@ export function ChatInterface({ onSendMessage, messages, isLoading = false }: Ch
               <div
                 key={message.id}
                 className={`flex gap-3 ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                  message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                {message.role === 'assistant' && (
+                {message.role === "assistant" && (
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                       <Bot className="h-4 w-4 text-primary-foreground" />
@@ -70,17 +76,19 @@ export function ChatInterface({ onSendMessage, messages, isLoading = false }: Ch
                 )}
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">
+                    {message.content}
+                  </p>
                   <p className="text-xs opacity-70 mt-1">
                     {message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
-                {message.role === 'user' && (
+                {message.role === "user" && (
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                       <User className="h-4 w-4 text-secondary-foreground" />
@@ -100,8 +108,14 @@ export function ChatInterface({ onSendMessage, messages, isLoading = false }: Ch
               <div className="bg-muted rounded-lg px-4 py-2">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <div
+                    className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                    style={{ animationDelay: "0.1s" }}
+                  />
+                  <div
+                    className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                    style={{ animationDelay: "0.2s" }}
+                  />
                 </div>
               </div>
             </div>
@@ -119,13 +133,17 @@ export function ChatInterface({ onSendMessage, messages, isLoading = false }: Ch
               className="flex-1 min-h-[60px] max-h-[120px] resize-none"
               disabled={isLoading}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
               }}
             />
-            <Button type="submit" disabled={!input.trim() || isLoading} size="icon">
+            <Button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              size="icon"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </form>

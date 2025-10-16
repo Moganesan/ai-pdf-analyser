@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // Search for relevant documents
     const searchResult = await searchSimilarDocuments(message, 4);
-    
+
     if (!searchResult.success) {
       return NextResponse.json(
         { success: false, error: 'Failed to search documents' },
