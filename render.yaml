@@ -35,9 +35,5 @@ services:
     startCommand: npm run start
     envVars:
       - key: NEXT_PUBLIC_BACKEND_URL
-        fromService:
-          type: web
-          name: ai-pdf-analyser-backend
-          property: url
       - key: NPM_CONFIG_LEGACY_PEER_DEPS
         value: true
