@@ -34,10 +34,10 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
-      - key: NEXT_PUBLIC_BACKEND_HOST
+      - key: NEXT_PUBLIC_BACKEND_URL
         fromService:
           type: web
           name: ai-pdf-analyser-backend
-          property: host
+          property: url
       - key: NPM_CONFIG_LEGACY_PEER_DEPS
         value: true
