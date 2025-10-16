@@ -1,6 +1,11 @@
 // Simple fetch-based API client
-// Next.js config handles proxying to backend
-const API_BASE_URL = '/api';
+// Prefer direct calls to backend origin in production to avoid proxy issues
+const backendOrigin = (() => {
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) return process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (process.env.NEXT_PUBLIC_BACKEND_HOST) return `https://${process.env.NEXT_PUBLIC_BACKEND_HOST}`;
+  return '';
+})();
+const API_BASE_URL = backendOrigin ? `${backendOrigin}/api` : '/api';
 
 // Helper function for API calls
 async function apiCall(endpoint: string, options: RequestInit = {}) {
