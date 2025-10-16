@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: ai-pdf-analyser-backend
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OLLAMA_BASE_URL
+        value: https://9ced50f2a317.ngrok-free.app
+      - key: OLLAMA_MODEL
+        value: gemma3:4b
+      - key: OLLAMA_EMBEDDING_MODEL
+        value: nomic-embed-text:latest
+      - key: CHROMA_PERSIST_DIRECTORY
+        value: /data/chroma_db
+      - key: UPLOAD_DIRECTORY
+        value: /data/uploads
+      - key: MAX_FILE_SIZE
+        value: "10485760"
+      - key: CHUNK_SIZE
+        value: "1000"
+      - key: CHUNK_OVERLAP
+        value: "200"
+      - key: RETRIEVAL_K
+        value: "4"
+    disks:
+      - name: data
+        mountPath: /data
+        sizeGB: 5
+
+  - type: web
+    name: ai-pdf-analyser-frontend
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_BACKEND_URL
+        fromService:
+          type: web
+          name: ai-pdf-analyser-backend
+          property: url
