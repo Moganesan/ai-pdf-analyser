@@ -1,12 +1,10 @@
 services:
   - type: web
     name: ai-pdf-analyser-backend
-    runtime: python
-    pythonVersion: 3.11
+    runtime: docker
     plan: free
-    rootDir: backend
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     envVars:
       - key: OLLAMA_BASE_URL
         value: https://9ced50f2a317.ngrok-free.app
@@ -26,6 +24,10 @@ services:
         value: "200"
       - key: RETRIEVAL_K
         value: "4"
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 5
 
   - type: web
     name: ai-pdf-analyser-frontend
@@ -39,10 +41,10 @@ services:
           type: web
           name: ai-pdf-analyser-backend
           property: host
-      - key: NEXT_PUBLIC_BACKEND_PORT
+      - key: NEXT_PUBLIC_BACKEND_HOST
         fromService:
           type: web
           name: ai-pdf-analyser-backend
-          property: port
+          property: host
       - key: NPM_CONFIG_LEGACY_PEER_DEPS
         value: true
