@@ -6,6 +6,8 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     envVars:
+      - key: PORT
+        value: 8000
       - key: OLLAMA_BASE_URL
         value: https://9ced50f2a317.ngrok-free.app
       - key: OLLAMA_MODEL
@@ -32,11 +34,6 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
-      - key: NEXT_PUBLIC_BACKEND_HOST
-        fromService:
-          type: web
-          name: ai-pdf-analyser-backend
-          property: host
       - key: NEXT_PUBLIC_BACKEND_HOST
         fromService:
           type: web
