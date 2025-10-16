@@ -26,14 +26,28 @@ FastAPI backend service for PDF document analysis with RAG (Retrieval Augmented 
 
 ## Setup Instructions
 
-### 1. Install Dependencies
+### 1. Create and Activate Virtual Environment
+
+```bash
+cd backend
+python -m venv .venv
+
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+# Windows (Git Bash)
+source .venv/Scripts/activate
+# macOS/Linux
+source .venv/bin/activate
+```
+
+### 2. Install Dependencies
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Setup Ollama
+### 3. Setup Ollama
 
 ```bash
 # Install Ollama (if not already installed)
@@ -46,7 +60,7 @@ ollama pull llama2
 ollama serve
 ```
 
-### 3. Configure Environment
+### 4. Configure Environment
 
 Create a `.env` file:
 
@@ -62,7 +76,7 @@ CHUNK_OVERLAP=200
 RETRIEVAL_K=4
 ```
 
-### 4. Run the Backend
+### 5. Run the Backend
 
 ```bash
 python run.py
