@@ -18,10 +18,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Configure CORS from environment
+frontend_url = os.getenv("FRONTEND_URL")
+frontend_host = os.getenv("FRONTEND_HOST")
+
+allowed_origins = ["*"]
+if frontend_url and frontend_url.strip():
+    allowed_origins = [frontend_url.strip()]
+elif frontend_host and frontend_host.strip():
+    # Render web services are HTTPS by default
+    allowed_origins = [f"https://{frontend_host.strip()}"]
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Frontend URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

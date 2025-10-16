@@ -6,6 +6,11 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     envVars:
+      - key: FRONTEND_HOST
+        fromService:
+          type: web
+          name: ai-pdf-analyser-frontend
+          property: host
       - key: PORT
         value: 8000
       - key: OLLAMA_BASE_URL
