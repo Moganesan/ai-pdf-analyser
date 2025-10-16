@@ -13,9 +13,9 @@ services:
       - key: OLLAMA_EMBEDDING_MODEL
         value: nomic-embed-text:latest
       - key: CHROMA_PERSIST_DIRECTORY
-        value: /data/chroma_db
+        value: /tmp/chroma_db
       - key: UPLOAD_DIRECTORY
-        value: /data/uploads
+        value: /tmp/uploads
       - key: MAX_FILE_SIZE
         value: "10485760"
       - key: CHUNK_SIZE
@@ -24,10 +24,6 @@ services:
         value: "200"
       - key: RETRIEVAL_K
         value: "4"
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 5
 
   - type: web
     name: ai-pdf-analyser-frontend
