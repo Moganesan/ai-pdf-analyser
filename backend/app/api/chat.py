@@ -3,9 +3,11 @@ from fastapi.responses import StreamingResponse
 from typing import List, Optional, AsyncGenerator
 from datetime import datetime
 import json
+import requests
 
 from app.models.document import ChatRequest, ChatResponse, ChatMessage
 from app.services.rag_service import rag_service
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -78,6 +80,17 @@ async def send_message_stream(request: ChatRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/ollama-status")
+async def ollama_status():
+    """Check whether Ollama server is reachable"""
+    try:
+        url = f"{settings.ollama_base_url.rstrip('/')}/api/tags"
+        resp = requests.get(url, timeout=settings.ollama_health_timeout_seconds)
+        ok = resp.status_code == 200
+        return {"success": ok, "status": resp.status_code, "reachable": ok}
+    except Exception as e:
+        return {"success": False, "reachable": False, "error": str(e)}
 
 @router.get("/history/{session_id}")
 async def get_chat_history(session_id: str):

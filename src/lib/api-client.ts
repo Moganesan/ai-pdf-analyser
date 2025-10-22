@@ -88,6 +88,25 @@ export const api = {
     return await apiCall('/health');
   },
 
+  // Backend Ollama status
+  ollamaStatus: async () => {
+    // Prefer chat endpoint; documents has one too
+    try {
+      return await apiCall('/chat/ollama-status');
+    } catch (e) {
+      return await apiCall('/documents/ollama-status');
+    }
+  },
+
+  // Notify dev via backend
+  notifyDev: async (message?: string) => {
+    const body = message ? { message } : {};
+    return await apiCall('/documents/notify-dev', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+
   // Chat endpoints
   sendMessage: async (message: string, documentIds: string[] = []) => {
     return await apiCall('/chat/message', {

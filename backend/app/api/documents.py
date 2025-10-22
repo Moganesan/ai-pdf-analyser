@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Body
 from fastapi.responses import JSONResponse
 import os
 import uuid
@@ -12,6 +12,7 @@ from typing import List, Dict, Any
 from app.models.document import DocumentResponse, DocumentList, DocumentChunk
 from app.services.rag_service import rag_service
 from app.core.config import settings
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +22,28 @@ router = APIRouter()
 
 # Persistent storage for document metadata
 DOCUMENTS_DB_FILE = "./documents_db.json"
+
+@router.post("/notify-dev")
+async def notify_dev(message: str = Body(default="Please start the AI server (Ollama) on backend host", embed=True)):
+    """Send a Telegram notification to the developer"""
+    try:
+        if not settings.telegram_bot_token or not settings.telegram_chat_id:
+            return JSONResponse({
+                "success": False,
+                "error": "Telegram is not configured on the server"
+            }, status_code=500)
+
+        url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
+        payload = {
+            "chat_id": settings.telegram_chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        resp = requests.post(url, json=payload, timeout=10)
+        ok = resp.status_code == 200 and resp.json().get("ok")
+        return JSONResponse({"success": ok, "status": resp.status_code, "response": resp.json()}, status_code=200 if ok else 500)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 def load_documents_db() -> Dict[str, Any]:
     """Load documents database from file"""
@@ -57,6 +80,25 @@ def save_documents_db(documents_db: Dict[str, Any]) -> None:
 # Load existing documents on startup
 documents_db = load_documents_db()
 logger.info(f"Loaded {len(documents_db)} documents from database")
+
+@router.get("/ollama-status")
+async def ollama_status():
+    """Check whether Ollama server is reachable"""
+    try:
+        url = f"{settings.ollama_base_url.rstrip('/')}/api/tags"
+        resp = requests.get(url, timeout=settings.ollama_health_timeout_seconds)
+        ok = resp.status_code == 200
+        return JSONResponse({
+            "success": ok,
+            "status": resp.status_code,
+            "reachable": ok
+        }, status_code=200 if ok else 503)
+    except Exception as e:
+        return JSONResponse({
+            "success": False,
+            "reachable": False,
+            "error": str(e)
+        }, status_code=503)
 
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(..., description="PDF file to upload")):

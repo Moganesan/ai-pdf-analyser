@@ -14,6 +14,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from pypdf import PdfReader
+import requests
 
 class FixedRAGService:
     def __init__(self):
@@ -30,6 +31,15 @@ class FixedRAGService:
             print(f"Using embedding model: {settings.ollama_embedding_model}")
             print(f"Using LLM model: {settings.ollama_model}")
             
+            # Check Ollama availability before initializing
+            try:
+                health_url = f"{settings.ollama_base_url.rstrip('/')}/api/tags"
+                resp = requests.get(health_url, timeout=settings.ollama_health_timeout_seconds)
+                if resp.status_code != 200:
+                    raise RuntimeError(f"Ollama health check failed with status {resp.status_code}")
+            except Exception as health_err:
+                raise RuntimeError(f"Ollama is not reachable at {settings.ollama_base_url}: {health_err}")
+
             # Initialize embeddings with your specific model
             self.embeddings = OllamaEmbeddings(
                 base_url=settings.ollama_base_url,

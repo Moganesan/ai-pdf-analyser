@@ -32,6 +32,10 @@ export default function Home() {
   const [backendStatus, setBackendStatus] = useState<
     "checking" | "connected" | "error"
   >("checking");
+  const [ollamaStatus, setOllamaStatus] = useState<
+    "checking" | "reachable" | "unreachable"
+  >("checking");
+  const [notifySending, setNotifySending] = useState(false);
 
   // Load existing documents and check backend health on component mount
   useEffect(() => {
@@ -41,6 +45,14 @@ export default function Home() {
         const health = await api.healthCheck();
         console.log("✅ Backend health check passed:", health);
         setBackendStatus("connected");
+
+        // Check Ollama status on backend
+        try {
+          const status = await api.ollamaStatus();
+          setOllamaStatus(status.reachable ? "reachable" : "unreachable");
+        } catch (e) {
+          setOllamaStatus("unreachable");
+        }
 
         // Load existing documents
         console.log("📄 Loading existing documents...");
@@ -69,6 +81,7 @@ export default function Home() {
       } catch (error) {
         console.error("❌ Backend health check failed:", error);
         setBackendStatus("error");
+        setOllamaStatus("unreachable");
       } finally {
         setIsLoadingDocuments(false);
       }
@@ -258,6 +271,44 @@ export default function Home() {
               <div className="text-red-600">
                 ❌ Backend connection failed. Please ensure the backend is
                 running on http://localhost:8000
+              </div>
+            )}
+            {backendStatus === "connected" && (
+              <div className="mt-2">
+                {ollamaStatus === "checking" && (
+                  <div className="text-yellow-600">
+                    🔍 Checking AI server...
+                  </div>
+                )}
+                {ollamaStatus === "reachable" && (
+                  <div className="text-green-600">✅ AI server reachable</div>
+                )}
+                {ollamaStatus === "unreachable" && (
+                  <div className="text-red-600 flex items-center gap-2">
+                    ❌ AI server unreachable.
+                    <button
+                      className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
+                      onClick={async () => {
+                        try {
+                          setNotifySending(true);
+                          await api.notifyDev(
+                            "AI server is unreachable from frontend. Please start Ollama."
+                          );
+                          alert("Developer notified.");
+                        } catch (e) {
+                          alert("Failed to notify developer.");
+                        } finally {
+                          setNotifySending(false);
+                        }
+                      }}
+                      disabled={notifySending}
+                    >
+                      {notifySending
+                        ? "Notifying..."
+                        : "Notify the dev to start the AI server"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
