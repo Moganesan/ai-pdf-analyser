@@ -1,37 +1,64 @@
-# Use a base image that has prebuilt wheels for most libraries
-FROM python:3.11-bookworm
+# Ubuntu 24.04 LTS (Noble) with Python 3.12
+FROM ubuntu:24.04
 
-# Avoid writing .pyc files and buffer logs
-ENV PYTHONDONTWRITEBYTECODE=1 \
+# Avoid interactive prompts and set UTF-8
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # Set working directory
 WORKDIR /app
 
-# Install required system dependencies (Rust not needed if we prefer binary wheels)
+# Install Python 3.12 and essential dependencies (including C++ build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.12 \
+    python3.12-dev \
+    python3.12-venv \
+    python3-pip \
     build-essential \
-    libffi-dev \
-    libssl-dev \
+    g++ \
+    gcc \
+    libc6-dev \
+    libgomp1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for python
+RUN ln -sf /usr/bin/python3.12 /usr/bin/python && \
+    ln -sf /usr/bin/python3.12 /usr/bin/python3
 
 # Copy requirements first (for Docker cache efficiency)
 COPY requirements.txt .
 
-# Upgrade pip and ensure wheel + setuptools are ready
-RUN pip install --upgrade pip setuptools wheel
+# Create virtual environment and install dependencies
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --upgrade pip setuptools wheel && \
+    /app/venv/bin/pip install --prefer-binary --no-cache-dir -r requirements.txt
 
-# Force pip to prefer binary wheels instead of building from source
-RUN pip install --prefer-binary --no-cache-dir -r requirements.txt
+# Update PATH to use venv
+ENV PATH="/app/venv/bin:$PATH"
 
 # Copy the rest of the app
 COPY . .
 
-# Expose port for Render
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/uploads /app/chroma_db && \
+    chmod 755 /app/uploads /app/chroma_db
+
+# Expose port
 ENV PORT=8000
 EXPOSE 8000
 
-# Default start command (Render expects CMD)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
+# Run as non-root user for security
+RUN useradd -m -u 1001 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Start command using venv python
+CMD ["/app/venv/bin/python", "run.py"]
