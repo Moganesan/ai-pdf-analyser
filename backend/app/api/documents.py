@@ -48,15 +48,13 @@ async def notify_dev(message: str = Body(default="Please start the AI server (Ol
 def load_documents_db() -> Dict[str, Any]:
     """Load documents database from file"""
     try:
-        if os.path.exists(DOCUMENTS_DB_FILE):
-            with open(DOCUMENTS_DB_FILE, 'r') as f:
-                data = json.load(f)
-                # Convert datetime strings back to datetime objects
-                for doc_id, doc_data in data.items():
-                    if 'upload_date' in doc_data:
-                        doc_data['upload_date'] = datetime.fromisoformat(doc_data['upload_date'])
-                return data
-        return {}
+        with open(DOCUMENTS_DB_FILE, 'r') as f:
+            data = json.load(f)
+            # Convert datetime strings back to datetime objects
+            for doc_id, doc_data in data.items():
+                if 'upload_date' in doc_data:
+                    doc_data['upload_date'] = datetime.fromisoformat(doc_data['upload_date'])
+            return data
     except Exception as e:
         logger.error(f"Error loading documents DB: {e}")
         return {}
@@ -77,8 +75,17 @@ def save_documents_db(documents_db: Dict[str, Any]) -> None:
     except Exception as e:
         logger.error(f"Error saving documents DB: {e}")
 
-# Load existing documents on startup
-documents_db = load_documents_db()
+# Always ensure documents_db.json exists as a file
+if not os.path.isfile(DOCUMENTS_DB_FILE):
+    logger.error(f"CRITICAL: {DOCUMENTS_DB_FILE} is not a file (likely a directory from Docker mount)")
+    logger.error(f"Please delete the directory on host and create an empty file before starting container:")
+    logger.error(f"  rm -rf documents_db.json && echo '{{}}' > documents_db.json")
+    # Initialize with empty dict instead of crashing
+    documents_db = {}
+else:
+    # Load existing documents on startup
+    documents_db = load_documents_db()
+
 logger.info(f"Loaded {len(documents_db)} documents from database")
 
 @router.get("/ollama-status")

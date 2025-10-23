@@ -4,6 +4,7 @@ python-multipart==0.0.6
 langchain
 langchain-community
 langchain-core
+langchain-chroma
 pypdf==3.17.4
 chromadb==0.4.14
 ollama==0.1.7

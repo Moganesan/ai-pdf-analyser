@@ -65,11 +65,11 @@ class FixedRAGService:
     def _ensure_ready(self):
         if self.initialization_error:
             raise RuntimeError(self.initialization_error)
-        if not self.embeddings or not self.llm:
+        if self.embeddings is None or self.llm is None:
             raise RuntimeError("LLM or embeddings are not initialized.")
-        if not self.vectorstore or not self.retriever:
+        if self.vectorstore is None or self.retriever is None:
             raise RuntimeError("Vector store or retriever is not initialized.")
-        if not self.rag_chain:
+        if self.rag_chain is None:
             raise RuntimeError("RAG chain is not initialized.")
 
     
@@ -77,21 +77,39 @@ class FixedRAGService:
     def _initialize_vectorstore(self):
         """Initialize ChromaDB vector store"""
         try:
+            persist_dir = settings.chroma_persist_directory
+            if not os.path.isabs(persist_dir):
+                persist_dir = os.path.abspath(persist_dir)
+            
+            print(f"Initializing vector store at: {persist_dir}")
+            os.makedirs(persist_dir, exist_ok=True)
+            
             self.vectorstore = Chroma(
-                persist_directory=settings.chroma_persist_directory,
+                persist_directory=persist_dir,
                 embedding_function=self.embeddings
             )
             self.retriever = self.vectorstore.as_retriever(
                 search_kwargs={"k": settings.retrieval_k}
             )
+            print(f"Vector store initialized successfully at: {persist_dir}")
         except Exception as e:
             print(f"Error initializing vector store: {e}")
+            print(f"Full error traceback:")
+            import traceback
+            traceback.print_exc()
             self.vectorstore = None
             self.retriever = None
 
     def _setup_rag_chain(self):
         """Setup the RAG chain with prompt template"""
         try:
+            print(f"Setting up RAG chain. Retriever exists: {self.retriever is not None}")
+            
+            if not self.retriever:
+                print("ERROR: Cannot setup RAG chain - retriever is None!")
+                self.rag_chain = None
+                return
+                
             template = """Answer the question based only on the following context:
             {context}
 
@@ -103,8 +121,11 @@ class FixedRAGService:
             prompt = ChatPromptTemplate.from_template(template)
             question_answer_chain = create_stuff_documents_chain(self.llm, prompt)
             self.rag_chain = create_retrieval_chain(self.retriever, question_answer_chain)
+            print("RAG chain setup successfully")
         except Exception as e:
             print(f"Error setting up RAG chain: {e}")
+            import traceback
+            traceback.print_exc()
             self.rag_chain = None
 
     async def process_document(self, file_path: str, document_id: str) -> Dict[str, Any]:
@@ -242,3 +263,6 @@ class FixedRAGService:
 
 # Global RAG service instance
 rag_service = FixedRAGService()
+print(f"DEBUG: Created RAG service instance with id: {id(rag_service)}")
+print(f"DEBUG: vectorstore exists: {rag_service.vectorstore is not None}")
+print(f"DEBUG: retriever exists: {rag_service.retriever is not None}")
